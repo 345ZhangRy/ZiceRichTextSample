@@ -1,1 +1,1 @@
-include ':app', ':zicerichtext'
+include ':app', ':ZiceRichText'
