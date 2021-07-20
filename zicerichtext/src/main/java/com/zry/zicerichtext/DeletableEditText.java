@@ -10,7 +10,7 @@ import android.view.inputmethod.InputConnectionWrapper;
 import com.zry.zicerichtext.mentions.library.edit.MentionEditText;
 
 /**
- * Deleteable EditText, the main purpose is to handle the soft keyboard back button when backtrack callback OnKeyListener
+ * Deletable EditText, the main purpose is to handle the soft keyboard back button when backtrack callback OnKeyListener
  *
  */
 public class DeletableEditText extends MentionEditText {

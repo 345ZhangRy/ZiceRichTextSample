@@ -74,10 +74,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mEditor.insertMention(user, MainActivity.this, AtColor);
                 break;
             case R.id.btn_2:
-                new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                        Manifest.permission.READ_EXTERNAL_STORAGE)
-                        .subscribe(granted -> {
-                            if (granted) {
+//                new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                        Manifest.permission.READ_EXTERNAL_STORAGE)
+//                        .subscribe(granted -> {
+//                            if (granted) {
                                 Matisse.from(MainActivity.this)
                                         .choose(MimeType.ofAll())
                                         .countable(true)
@@ -87,11 +87,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         .thumbnailScale(0.85f)
                                         .imageEngine(new MyGlideEngine())
                                         .forResult(REQUEST_ALBUM);
-                            } else {
-                                // At least one permission is denied
-                                Toast.makeText(this, "您没有授权该权限，请在设置中打开授权", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+//                            } else {
+//                                // At least one permission is denied
+//                                Toast.makeText(this, "您没有授权该权限，请在设置中打开授权", Toast.LENGTH_SHORT).show();
+//                            }
+//                        });
                 break;
             case R.id.btn_11:
                 mShowTv.setText("");
