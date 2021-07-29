@@ -1,6 +1,6 @@
-package com.zry.zicerichtext.mentions.library.edit.util;
+package com.zry.zicerichtext.range;
 
-import com.zry.zicerichtext.mentions.library.model.Range;
+import com.zry.zicerichtext.range.Range;
 
 import java.util.ArrayList;
 import java.util.Iterator;

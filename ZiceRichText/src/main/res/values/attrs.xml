@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
-    <declare-styleable name="RichTextEditor" >
+    <declare-styleable name="ZiceRichTextEditor" >
         <attr name="rt_editor_image_height" format="integer" />
-        <attr name="rt_editor_image_bottom" format="integer" />
         <attr name="rt_editor_text_init_hint" format="string" />
         <attr name="rt_editor_text_size" format="dimension" />
         <attr name="rt_editor_text_color" format="color" />

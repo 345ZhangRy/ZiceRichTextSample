@@ -1,7 +1,4 @@
-package com.zry.zicerichtext.mentions.library.edit.util;
-
-import com.zry.zicerichtext.mentions.library.model.FormatRange;
-import com.zry.zicerichtext.mentions.library.model.Range;
+package com.zry.zicerichtext.range;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.view.inputmethod.InputMethodManager;
 
-import com.zry.zicerichtext.mentions.library.edit.MentionEditText;
+import com.zry.zicerichtext.MentionEditText;
 
 public class ZiceUtils {
 

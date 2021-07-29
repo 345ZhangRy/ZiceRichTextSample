@@ -1,12 +1,12 @@
-package com.zry.zicerichtext.mentions.library.edit.listener;
+package com.zry.zicerichtext.mention.util;
 
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 
-import com.zry.zicerichtext.mentions.library.edit.MentionEditText;
-import com.zry.zicerichtext.mentions.library.edit.util.RangeManager;
-import com.zry.zicerichtext.mentions.library.model.Range;
+import com.zry.zicerichtext.MentionEditText;
+import com.zry.zicerichtext.range.RangeManager;
+import com.zry.zicerichtext.range.Range;
 
 import java.util.Iterator;
 

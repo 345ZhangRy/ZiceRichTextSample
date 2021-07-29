@@ -1,6 +1,5 @@
 package com.zry.zicerichtextsample;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
@@ -12,13 +11,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
 import com.zry.zicerichtext.ZiceRichTextEditor;
-import com.zry.zicerichtext.mentions.edit.User;
+import com.zry.zicerichtext.mention.model.User;
 import com.zry.zicerichtext.utils.MyGlideEngine;
 
 import java.util.List;
@@ -71,22 +68,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.btn_1:
                 User user = new User("10", "小燕子", AtColor);
-                mEditor.insertMention(user, MainActivity.this, AtColor);
+                mEditor.insertMention(user);
                 break;
             case R.id.btn_2:
 //                new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE,
 //                        Manifest.permission.READ_EXTERNAL_STORAGE)
 //                        .subscribe(granted -> {
 //                            if (granted) {
-                                Matisse.from(MainActivity.this)
-                                        .choose(MimeType.ofAll())
-                                        .countable(true)
-                                        .maxSelectable(9)
-                                        .gridExpectedSize(getResources().getDimensionPixelSize(R.dimen.grid_expected_size))
-                                        .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-                                        .thumbnailScale(0.85f)
-                                        .imageEngine(new MyGlideEngine())
-                                        .forResult(REQUEST_ALBUM);
+                Matisse.from(MainActivity.this)
+                        .choose(MimeType.ofAll())
+                        .countable(true)
+                        .maxSelectable(9)
+                        .gridExpectedSize(getResources().getDimensionPixelSize(R.dimen.grid_expected_size))
+                        .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+                        .thumbnailScale(0.85f)
+                        .imageEngine(new MyGlideEngine())
+                        .forResult(REQUEST_ALBUM);
 //                            } else {
 //                                // At least one permission is denied
 //                                Toast.makeText(this, "您没有授权该权限，请在设置中打开授权", Toast.LENGTH_SHORT).show();

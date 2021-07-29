@@ -1,6 +1,5 @@
 package com.zry.zicerichtext;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -20,10 +19,9 @@ import android.widget.ScrollView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.zry.zicerichtext.mentions.edit.User;
-import com.zry.zicerichtext.mentions.library.edit.MentionEditText;
-import com.zry.zicerichtext.mentions.library.model.FormatRange;
-import com.zry.zicerichtext.mentions.library.model.Range;
+import com.zry.zicerichtext.mention.model.User;
+import com.zry.zicerichtext.range.FormatRange;
+import com.zry.zicerichtext.range.Range;
 import com.zry.zicerichtext.utils.GlideApp;
 import com.zry.zicerichtext.utils.ZiceUtils;
 
@@ -32,42 +30,39 @@ import java.util.List;
 
 public class ZiceRichTextEditor extends ScrollView {
 
+    private static final int LAYOUT_PADDING_TB = 15; // mAllLayout的上下padding
+    private static final int LAYOUT_PADDING_LR = 50; // mAllLayout的左右padding
+    private static final int EDIT_PADDING_TB = 10; // edittext的上下padding
+    private static final int EDIT_PADDING_LR = 0; // edittext的左右padding
+
+    private OnKeyListener mKeyListener; // SoftText Listener for all EditText
+    private OnClickListener mBtnDeleteListener; // Red cross button listener in the upper right corner of the picture
+    private OnFocusChangeListener mFocusListener; // All EditText focus listeners listener
+    private OnRtImageDeleteListener mOnRtImageDeleteListener;//Interface for deleting pictures
+    private OnRtImageClickListener mOnRtImageClickListener;//Click on the image interface
+
     private Context mContext;
-    private Activity activity;
-
-    private LayoutInflater inflater;
-    private int viewTagIndex = 1; // The newer view will have a tag, which is unique for each view.
-    private LinearLayout allLayout; // This is the container for all child views, the only one inside the scrollView.
-    private MentionEditText lastFocusEdit; // Recently focused EditText
-    private DeletableImageView item;
-
-    private OnKeyListener keyListener; // SoftText Listener for all EditText
-    private OnClickListener btnDeleteListener; // Red cross button listener in the upper right corner of the picture
-    private OnFocusChangeListener focusListener; // All EditText focus listeners listener
-    private OnRtImageDeleteListener onRtImageDeleteListener;//Interface for deleting pictures
-    private OnRtImageClickListener onRtImageClickListener;//Click on the image interface
-
-    private static final int EDIT_PADDING = 10; // Edittext regular padding is 10dp
-    private int editNormalPadding = 0; //
-    private int disappearingImageIndex = 0;
-
-    StringBuilder updateText = new StringBuilder();  //Text to be uploaded
-    private String currentPath = "";
-    private ArrayList<String> imagePaths;   //Image address collection
-    private int AtColor = 0xff42ca6e;
+    private LayoutInflater mInflater;
+    private int mViewTagIndex; // The newer view will have a tag, which is unique for each view.
+    private LinearLayout mAllLayout; // This is the container for all child views, the only one inside the scrollView.
+    private MentionEditText mLastFocusEdit; // Recently focused EditText
+    private DeletableImageView mDeletableImageView;
+    private int mDisappearingImageIndex = 0;
+    StringBuilder mUpdateText = new StringBuilder();  //Text to be uploaded
+    private String mCurrentPath = "";
+    private ArrayList<String> mImagePaths;   //Image address collection
+    private int mAtColor = 0xff42ca6e;
 
     /**
      * Custom attribute
      **/
     //The inserted picture shows the height
-    private int rtImageHeight = 500;
-    //Two adjacent image spacing
-    private int rtImageBottom = 10;
+    private int rtImageHeight;
     //Text related attributes, initial prompt information, text size and color
-    private String rtTextInitHint = "";
-    private int rtTextSize = 16;
-    private int rtTextColor = Color.parseColor("#42ca6e");
-    private int rtTextLineSpace = 8;
+    private String mZrtTextInitHint;
+    private int mZrtTextSize;
+    private int mZrtTextColor;
+    private int mZrtTextLineSpace;
 
     public ZiceRichTextEditor(Context context) {
         this(context, null);
@@ -83,21 +78,18 @@ public class ZiceRichTextEditor extends ScrollView {
         this.mContext = context;
 
         //Get custom attributes
-        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.RichTextEditor);
-        rtImageHeight = ta.getInteger(R.styleable.RichTextEditor_rt_editor_image_height, 500);
-        rtImageBottom = ta.getInteger(R.styleable.RichTextEditor_rt_editor_image_bottom, 10);
-        rtTextSize = ta.getDimensionPixelSize(R.styleable.RichTextEditor_rt_editor_text_size, 16);
-        rtTextLineSpace = ta.getDimensionPixelSize(R.styleable.RichTextEditor_rt_editor_text_line_space, 8);
-        rtTextColor = ta.getColor(R.styleable.RichTextEditor_rt_editor_text_color, Color.parseColor("#757575"));
-        rtTextInitHint = ta.getString(R.styleable.RichTextEditor_rt_editor_text_init_hint);
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.ZiceRichTextEditor);
+        rtImageHeight = ta.getInteger(R.styleable.ZiceRichTextEditor_rt_editor_image_height, 500);
+        mZrtTextSize = ta.getDimensionPixelSize(R.styleable.ZiceRichTextEditor_rt_editor_text_size, 16);
+        mZrtTextLineSpace = ta.getDimensionPixelSize(R.styleable.ZiceRichTextEditor_rt_editor_text_line_space, 8);
+        mZrtTextColor = ta.getColor(R.styleable.ZiceRichTextEditor_rt_editor_text_color, Color.parseColor("#757575"));
+        mZrtTextInitHint = ta.getString(R.styleable.ZiceRichTextEditor_rt_editor_text_init_hint);
 
         ta.recycle();
 
-        activity = (Activity) context;
+        mImagePaths = new ArrayList<>();
 
-        imagePaths = new ArrayList<>();
-
-        inflater = LayoutInflater.from(context);
+        mInflater = LayoutInflater.from(context);
 
         //1. Initialize allLayout
         initAllLayout();
@@ -117,18 +109,17 @@ public class ZiceRichTextEditor extends ScrollView {
     }
 
     private void initAllLayout() {
-        allLayout = new LinearLayout(mContext);
-        allLayout.setOrientation(LinearLayout.VERTICAL);
-        LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT,
-                LayoutParams.WRAP_CONTENT);
-        allLayout.setPadding(50, 15, 50, 15);//Set the spacing to prevent the text from being too close to the edge when generating the image, not using margin, otherwise there is a black border
-        addView(allLayout, layoutParams);
+        mAllLayout = new LinearLayout(mContext);
+        mAllLayout.setOrientation(LinearLayout.VERTICAL);
+        LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+        //设置间距，防止生成图片时文字太靠边，不能用margin，否则有黑边
+        mAllLayout.setPadding(LAYOUT_PADDING_LR, LAYOUT_PADDING_TB, LAYOUT_PADDING_LR, LAYOUT_PADDING_TB);
+        addView(mAllLayout, layoutParams);
     }
 
     private void initKeyBoardBackPress() {
         // Mainly used to handle the click-to-delete button, some column merge operations of the view
-        keyListener = new OnKeyListener() {
-
+        mKeyListener = new OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_DEL) {
@@ -141,7 +132,7 @@ public class ZiceRichTextEditor extends ScrollView {
     }
 
     /**
-     *Handling the soft keyboard backSpace rollback event
+     * Handling the soft keyboard backSpace rollback event
      *
      * @param editTxt The text input box where the cursor is located
      */
@@ -149,15 +140,15 @@ public class ZiceRichTextEditor extends ScrollView {
         int startSelection = editTxt.getSelectionStart();
         // Only when the cursor has been topped to the forefront of the text input box, in the decision whether to delete the previous picture, or two View merge
         if (startSelection == 0) {
-            int editIndex = allLayout.indexOfChild(editTxt);
-            View preView = allLayout.getChildAt(editIndex - 1); // If editIndex-1<0,
+            int editIndex = mAllLayout.indexOfChild(editTxt);
+            View preView = mAllLayout.getChildAt(editIndex - 1); // If editIndex-1<0,
             // Then returns null
             if (null != preView) {
                 if (preView instanceof RelativeLayout) {
                     // The previous view of the cursor EditText corresponds to the image
                     onImageCloseClick(preView);
                 } else if (preView instanceof MentionEditText) {
-                    disappearingImageIndex = editIndex;
+                    mDisappearingImageIndex = editIndex;
                     mergeEditText2();
                 } else if (preView instanceof LinearLayout) {
                 }
@@ -166,15 +157,15 @@ public class ZiceRichTextEditor extends ScrollView {
     }
 
     private void initImgDelete() {
-        btnDeleteListener = new OnClickListener() {
+        mBtnDeleteListener = new OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 if (v instanceof DeletableImageView) {
                     DeletableImageView imageView = (DeletableImageView) v;
                     // Open picture click interface
-                    if (onRtImageClickListener != null) {
-                        onRtImageClickListener.onRtImageClick(imageView.getAbsolutePath());
+                    if (mOnRtImageClickListener != null) {
+                        mOnRtImageClickListener.onRtImageClick(imageView.getAbsolutePath());
                     }
                 }
                 //                                else if (v instanceof ClosePlantImageView) {
@@ -193,48 +184,45 @@ public class ZiceRichTextEditor extends ScrollView {
         void onRtImageDelete(String imagePath);
     }
 
-    public void setOnRtImageDeleteListener(OnRtImageDeleteListener onRtImageDeleteListener) {
-        this.onRtImageDeleteListener = onRtImageDeleteListener;
+    public void setOnRtImageDeleteListener(OnRtImageDeleteListener mOnRtImageDeleteListener) {
+        this.mOnRtImageDeleteListener = mOnRtImageDeleteListener;
     }
 
     public interface OnRtImageClickListener {
         void onRtImageClick(String imagePath);
     }
 
-    public void setOnRtImageClickListener(OnRtImageClickListener onRtImageClickListener) {
-        this.onRtImageClickListener = onRtImageClickListener;
+    public void setOnRtImageClickListener(OnRtImageClickListener mOnRtImageClickListener) {
+        this.mOnRtImageClickListener = mOnRtImageClickListener;
     }
 
     private void initFocusChangeListener() {
-        focusListener = new OnFocusChangeListener() {
-
+        mFocusListener = new OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
-                    lastFocusEdit = (MentionEditText) v;
+                    mLastFocusEdit = (MentionEditText) v;
                 }
             }
         };
-
     }
 
     private void addFirstView() {
         LinearLayout.LayoutParams firstEditParam = new LinearLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        MentionEditText firstEdit = createEditText(rtTextInitHint, ZiceUtils.dip2px(mContext, EDIT_PADDING));
-        allLayout.addView(firstEdit, firstEditParam);
-        lastFocusEdit = firstEdit;
+        MentionEditText firstEdit = createEditText(mZrtTextInitHint);
+        mAllLayout.addView(firstEdit, firstEditParam);
+        mLastFocusEdit = firstEdit;
     }
 
     /**
      * Insert a @somebody
      *
      * @param user user
-     * @param mContext mContext
      */
-    public void insertMention(User user, Context mContext, int color) {
-        this.AtColor = color;
-        lastFocusEdit.insert(user, user.getUserId(), mContext);
+    public void insertMention(User user) {
+        this.mAtColor = user.color();
+        mLastFocusEdit.insert(user);
     }
 
     /**
@@ -272,25 +260,25 @@ public class ZiceRichTextEditor extends ScrollView {
      * Get content
      */
     public String getAllLayoutText() {
-        if (allLayout.getChildCount() == 0) {
+        if (mAllLayout.getChildCount() == 0) {
             return "RESULT_NULL";
         }
-        for (int i = 0; i < allLayout.getChildCount(); i++) {
-            View currentView = allLayout.getChildAt(i);
+        for (int i = 0; i < mAllLayout.getChildCount(); i++) {
+            View currentView = mAllLayout.getChildAt(i);
             if (currentView instanceof MentionEditText) {       //Pure characters and @somebody
                 MentionEditText editText = (MentionEditText) currentView;
                 if (!editText.getFormatCharSequence().toString().equals("")) {
-                    updateText = updateText.append("<p>" + editText.getFormatCharSequence().toString() + "</p>");
+                    mUpdateText = mUpdateText.append("<p>" + editText.getFormatCharSequence().toString() + "</p>");
                 }
             }
             if (currentView instanceof RelativeLayout) {     //picture
-                item = currentView.findViewById(R.id.edit_imageView);
-                currentPath = item.getAbsolutePath();
-                updateText.append("<img data-src=\"" + currentPath + "/>");
+                mDeletableImageView = currentView.findViewById(R.id.edit_imageView);
+                mCurrentPath = mDeletableImageView.getAbsolutePath();
+                mUpdateText.append("<img data-src=\"" + mCurrentPath + "/>");
             }
         }
-        String resultText = updateText.toString();
-        updateText.delete(0, updateText.length());
+        String resultText = mUpdateText.toString();
+        mUpdateText.delete(0, mUpdateText.length());
         return resultText;
     }
 
@@ -298,15 +286,16 @@ public class ZiceRichTextEditor extends ScrollView {
     /**
      * Generate text input box
      */
-    public MentionEditText createEditText(String hint, int paddingTop) {
-        MentionEditText editText = (MentionEditText) inflater.inflate(R.layout.zice_rich_edittext, null);
-        editText.setOnKeyListener(keyListener);
-        editText.setTag(viewTagIndex++);
-        editText.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop);
+    public MentionEditText createEditText(String hint) {
+        MentionEditText editText = (MentionEditText) mInflater.inflate(R.layout.zice_rich_edittext, null);
+        editText.setOnKeyListener(mKeyListener);
+        editText.setTag(mViewTagIndex++);
+        editText.setPadding(EDIT_PADDING_LR, EDIT_PADDING_TB, EDIT_PADDING_LR, EDIT_PADDING_TB);
         editText.setHint(hint);
-        editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, rtTextSize);
-        editText.setLineSpacing(rtTextLineSpace, 1.0f);
-        editText.setOnFocusChangeListener(focusListener);
+        editText.setTextColor(mZrtTextColor);
+        editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, mZrtTextSize);
+        editText.setLineSpacing(mZrtTextLineSpace, 1.0f);
+        editText.setOnFocusChangeListener(mFocusListener);
         return editText;
     }
 
@@ -316,15 +305,15 @@ public class ZiceRichTextEditor extends ScrollView {
      */
     public void insertImageToEditor(Bitmap bitmap, String imagePath) {
         //lastFocusEdit gets the focus of the EditText
-        String lastEditStr = lastFocusEdit.getText().toString();
-        CharSequence formatCharSequence = lastFocusEdit.getFormatCharSequence();
+        String lastEditStr = mLastFocusEdit.getText().toString();
+        CharSequence formatCharSequence = mLastFocusEdit.getFormatCharSequence();
         // Actual cursor position
         int actualCursorIndex = 0;
         //Get the location of the cursor
-        int cursorIndex = lastFocusEdit.getSelectionStart();
+        int cursorIndex = mLastFocusEdit.getSelectionStart();
         List<Integer> rangeFromIndexList = new ArrayList<>();
         List<Integer> rangeToIndexList = new ArrayList<>();
-        ArrayList<? extends Range> ranges = lastFocusEdit.getRangeManager().get();
+        ArrayList<? extends Range> ranges = mLastFocusEdit.getRangeManager().get();
         List<Range> formatRanges = new ArrayList<>();
         for (int i = 0; i < ranges.size(); i++) {
             Range range = ranges.get(i);
@@ -336,7 +325,7 @@ public class ZiceRichTextEditor extends ScrollView {
         String editStr1 = lastEditStr.substring(0, cursorIndex).trim();//Get the string in front of the cursor
         String editStr2 = lastEditStr.substring(cursorIndex).trim();//Get the string after the cursor
 
-        int lastEditIndex = allLayout.indexOfChild(lastFocusEdit);//Get the location of the EditText in focus
+        int lastEditIndex = mAllLayout.indexOfChild(mLastFocusEdit);//Get the location of the EditText in focus
 
         if (lastEditStr.length() == 0) {
             //If the currently selected EditText is empty, insert the image directly below the EditText and insert an empty EditText.
@@ -354,8 +343,8 @@ public class ZiceRichTextEditor extends ScrollView {
         } else {
 
             // Clear the cursor before the EditText
-            lastFocusEdit.clear();
-            Editable editable = lastFocusEdit.getText();
+            mLastFocusEdit.clear();
+            Editable editable = mLastFocusEdit.getText();
             List<Integer> usedIndexList = new ArrayList<>();
             for (int i = 0; i < rangeFromIndexList.size(); i++) {
                 Integer from = rangeFromIndexList.get(i);
@@ -366,8 +355,8 @@ public class ZiceRichTextEditor extends ScrollView {
                     editable.append(lastEditStr.substring(editable.length(), from));
                     FormatRange range = (FormatRange) formatRanges.get(i);
                     CharSequence rangeCharSequence = range.getRangeCharSequence();
-                    User user = new User(range.getConvert().getUserId(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), AtColor);
-                    insertMention(user, getContext(), AtColor);
+                    User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
+                    insertMention(user);
                 } else {
                     editable.append(lastEditStr.substring(editable.length(), cursorIndex));
                 }
@@ -379,7 +368,7 @@ public class ZiceRichTextEditor extends ScrollView {
             // lastFocusEdit.setText(editStr1);
 
             //Put the string after the cursor in the newly created EditText (this is the second EditText split)
-            MentionEditText editText2 = createEditText("", EDIT_PADDING);
+            MentionEditText editText2 = createEditText("");
             //Determine whether the inserted string is empty. If there is no content, display the hint message.
             if (editStr2.length() > 0) {
                 Editable editable1 = editText2.getText();
@@ -400,8 +389,8 @@ public class ZiceRichTextEditor extends ScrollView {
                             editable1.append(lastEditStr.substring(beginIndex, from));
                             FormatRange range = (FormatRange) formatRanges.get(i);
                             CharSequence rangeCharSequence = range.getRangeCharSequence();
-                            User user = new User(range.getConvert().getUserId(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), AtColor);
-                            editText2.insert(user, user.getUserId(), getContext());
+                            User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
+                            editText2.insert(user);
                             if (i == rangeFromIndexList.size() - 1) {
                                 editable1.append(lastEditStr.substring(to));
                             }
@@ -413,59 +402,59 @@ public class ZiceRichTextEditor extends ScrollView {
                 }
             }
 
-            editText2.setOnFocusChangeListener(focusListener);
+            editText2.setOnFocusChangeListener(mFocusListener);
 
             //Please note that EditText adds, or deletes, does not touch Transition animation.
-            allLayout.setLayoutTransition(null);
-            allLayout.addView(editText2, lastEditIndex + 1);
+            mAllLayout.setLayoutTransition(null);
+            mAllLayout.addView(editText2, lastEditIndex + 1);
             //After inserting a new EditText, modify the pointing of lastFocusEdit
-            lastFocusEdit = editText2;
-            lastFocusEdit.requestFocus();
+            mLastFocusEdit = editText2;
+            mLastFocusEdit.requestFocus();
             //Insert an empty EditText at the position of the second EditText so that when multiple images are inserted consecutively, there is space to write the text, and the second EditText is moved down.
             addEditTextAtIndex(lastEditIndex + 1, "");
             //Insert the image layout in the position of the empty EditText, move the empty EditText down
             addImageViewAtIndex(lastEditIndex + 1, bitmap, imagePath);
         }
-        ZiceUtils.hideKeyBoard(getContext(), lastFocusEdit);
+        ZiceUtils.hideKeyBoard(getContext(), mLastFocusEdit);
     }
 
     /**
-     *Insert EditText at a specific location
+     * Insert EditText at a specific location
      *
      * @param index   position
      * @param editStr Text displayed by EditText
      */
     public void addEditTextAtIndex(final int index, CharSequence editStr) {
-        MentionEditText editText2 = createEditText("", EDIT_PADDING);
+        MentionEditText editText2 = createEditText("");
         //Determine whether the inserted string is empty. If there is no content, display the hint message.
         if (editStr != null && editStr.length() > 0) {
             editText2.setText(editStr);
         }
-        editText2.setOnFocusChangeListener(focusListener);
+        editText2.setOnFocusChangeListener(mFocusListener);
 
         // Please note that EditText adds, or deletes, does not touch Transition animation.
-        allLayout.setLayoutTransition(null);
-        allLayout.addView(editText2, index);
+        mAllLayout.setLayoutTransition(null);
+        mAllLayout.addView(editText2, index);
         //After inserting a new EditText, modify the pointing of lastFocusEdit
-        lastFocusEdit = editText2;
-        lastFocusEdit.requestFocus();
-        lastFocusEdit.setSelection(editStr.length(), editStr.length());
+        mLastFocusEdit = editText2;
+        mLastFocusEdit.requestFocus();
+        mLastFocusEdit.setSelection(editStr.length(), editStr.length());
     }
 
     /**
      * Add an ImageView to a specific location
      */
     public void addImageViewAtIndex(final int index, Bitmap bmp, String imagePath) {
-        imagePaths.add(imagePath);
+        mImagePaths.add(imagePath);
         RelativeLayout imageLayout = createImageLayout();
         DeletableImageView imageView = (DeletableImageView) imageLayout.findViewById(R.id.edit_imageView);
         GlideApp.with(getContext()).load(imagePath).centerCrop().into(imageView);
         imageView.setAbsolutePath(imagePath);
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//Cropping
-        int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+        int imageHeight = mAllLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, imageHeight);//TODO Image height, consider custom attributes
-        lp.bottomMargin = rtImageBottom;
+        lp.bottomMargin = EDIT_PADDING_TB;
         imageView.setLayoutParams(lp);
 
         if (rtImageHeight > 0) {
@@ -475,20 +464,20 @@ public class ZiceRichTextEditor extends ScrollView {
             GlideApp.with(getContext()).load(imagePath)
                     .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
         }
-        allLayout.addView(imageLayout, index);
+        mAllLayout.addView(imageLayout, index);
     }
 
     /**
      * Generate image view
      */
     private RelativeLayout createImageLayout() {
-        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.edit_imageview, null);
-        layout.setTag(viewTagIndex++);
+        RelativeLayout layout = (RelativeLayout) mInflater.inflate(R.layout.edit_imageview, null);
+        layout.setTag(mViewTagIndex++);
         View closeView = layout.findViewById(R.id.image_close);
         closeView.setTag(layout.getTag());
-        closeView.setOnClickListener(btnDeleteListener);
+        closeView.setOnClickListener(mBtnDeleteListener);
         DeletableImageView imageView = layout.findViewById(R.id.edit_imageView);
-        imageView.setOnClickListener(btnDeleteListener);
+        imageView.setOnClickListener(mBtnDeleteListener);
         return layout;
     }
 
@@ -500,16 +489,16 @@ public class ZiceRichTextEditor extends ScrollView {
      */
     private void onImageCloseClick(View view) {
         //if (!mTransitioner.isRunning()) {
-        disappearingImageIndex = allLayout.indexOfChild(view);
+        mDisappearingImageIndex = mAllLayout.indexOfChild(view);
         //Delete the image in the folder
         List<EditData> dataList = buildEditData();
-        EditData editData = dataList.get(disappearingImageIndex);
+        EditData editData = dataList.get(mDisappearingImageIndex);
         if (editData.imagePath != null) {
-            if (onRtImageDeleteListener != null) {
+            if (mOnRtImageDeleteListener != null) {
                 //TODO Through the interface callback, the image deletion operation is processed in the note editing interface.
-                onRtImageDeleteListener.onRtImageDelete(editData.imagePath);
+                mOnRtImageDeleteListener.onRtImageDelete(editData.imagePath);
             }
-            imagePaths.remove(editData.imagePath);
+            mImagePaths.remove(editData.imagePath);
         }
         mergeEditText();//Merge upper and lower EditText content
     }
@@ -519,9 +508,9 @@ public class ZiceRichTextEditor extends ScrollView {
      */
     public List<EditData> buildEditData() {
         List<EditData> dataList = new ArrayList<EditData>();
-        int num = allLayout.getChildCount();
+        int num = mAllLayout.getChildCount();
         for (int index = 0; index < num; index++) {
-            View itemView = allLayout.getChildAt(index);
+            View itemView = mAllLayout.getChildAt(index);
             EditData itemData = new EditData();
             if (itemView instanceof MentionEditText) {
                 MentionEditText item = (MentionEditText) itemView;
@@ -543,9 +532,9 @@ public class ZiceRichTextEditor extends ScrollView {
 
         int postion;
 
-        View preView = allLayout.getChildAt(disappearingImageIndex - 1);
-        View nextView = allLayout.getChildAt(disappearingImageIndex + 1);
-        View emptyView = allLayout.getChildAt(disappearingImageIndex);
+        View preView = mAllLayout.getChildAt(mDisappearingImageIndex - 1);
+        View nextView = mAllLayout.getChildAt(mDisappearingImageIndex + 1);
+        View emptyView = mAllLayout.getChildAt(mDisappearingImageIndex);
         if (preView != null && preView instanceof MentionEditText && null != nextView && nextView instanceof MentionEditText) {
             MentionEditText preEdit = (MentionEditText) preView;
             MentionEditText nextEdit = (MentionEditText) nextView;
@@ -573,8 +562,8 @@ public class ZiceRichTextEditor extends ScrollView {
                 preEditable.append(nextStringValue.substring(nextEditable.length(), from));
                 FormatRange range = (FormatRange) nextFormatRanges.get(i);
                 CharSequence rangeCharSequence = range.getRangeCharSequence();
-                User user = new User(range.getConvert().getUserId(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), AtColor);
-                preEdit.insert(user, user.getUserId(), getContext());
+                User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
+                preEdit.insert(user);
                 if (i == (nextRangeFromIndexList.size() - 1)) {
                     preEditable.append(nextStringValue.substring(to));
                 }
@@ -583,9 +572,9 @@ public class ZiceRichTextEditor extends ScrollView {
                 preEditable.append(nextStringValue);
             }
 
-            allLayout.setLayoutTransition(null);
-            allLayout.removeView(nextEdit);
-            allLayout.removeView(emptyView);
+            mAllLayout.setLayoutTransition(null);
+            mAllLayout.removeView(nextEdit);
+            mAllLayout.removeView(emptyView);
             preEdit.requestFocus();
             preEdit.setSelection(postion);
         }
@@ -596,8 +585,8 @@ public class ZiceRichTextEditor extends ScrollView {
 
         int postion;
 
-        View preView = allLayout.getChildAt(disappearingImageIndex - 1);
-        View currentView = allLayout.getChildAt(disappearingImageIndex);
+        View preView = mAllLayout.getChildAt(mDisappearingImageIndex - 1);
+        View currentView = mAllLayout.getChildAt(mDisappearingImageIndex);
         if (preView != null && preView instanceof MentionEditText && null != currentView && currentView instanceof MentionEditText) {
             MentionEditText preEdit = (MentionEditText) preView;
             MentionEditText currentEdit = (MentionEditText) currentView;
@@ -623,8 +612,8 @@ public class ZiceRichTextEditor extends ScrollView {
                 preEditable.append(nextStringValue.substring(nextEditable.length(), from));
                 FormatRange range = (FormatRange) nextFormatRanges.get(i);
                 CharSequence rangeCharSequence = range.getRangeCharSequence();
-                User user = new User(range.getConvert().getUserId(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), AtColor);
-                preEdit.insert(user, user.getUserId(), getContext());
+                User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
+                preEdit.insert(user);
                 if (i == (nextRangeFromIndexList.size() - 1)) {
                     preEditable.append(nextStringValue.substring(to));
                 }
@@ -632,8 +621,8 @@ public class ZiceRichTextEditor extends ScrollView {
             if (nextRangeFromIndexList.size() == 0) {
                 preEditable.append(nextStringValue);
             }
-            allLayout.setLayoutTransition(null);
-            allLayout.removeView(currentEdit);
+            mAllLayout.setLayoutTransition(null);
+            mAllLayout.removeView(currentEdit);
             preEdit.requestFocus();
             preEdit.setSelection(postion);
         }
@@ -646,8 +635,8 @@ public class ZiceRichTextEditor extends ScrollView {
 
         int postion;
 
-        View preView = allLayout.getChildAt(disappearingImageIndex - 1);
-        View currentView = allLayout.getChildAt(disappearingImageIndex);
+        View preView = mAllLayout.getChildAt(mDisappearingImageIndex - 1);
+        View currentView = mAllLayout.getChildAt(mDisappearingImageIndex);
         if (preView != null && preView instanceof MentionEditText && null != currentView && currentView instanceof MentionEditText) {
             MentionEditText preEdit = (MentionEditText) preView;
             MentionEditText currentEdit = (MentionEditText) currentView;
@@ -673,8 +662,8 @@ public class ZiceRichTextEditor extends ScrollView {
                 preEditable.append(nextStringValue.substring(nextEditable.length(), from));
                 FormatRange range = (FormatRange) nextFormatRanges.get(i);
                 CharSequence rangeCharSequence = range.getRangeCharSequence();
-                User user = new User(range.getConvert().getUserId(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), AtColor);
-                preEdit.insert(user, user.getUserId(), getContext());
+                User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
+                preEdit.insert(user);
                 if (i == (nextRangeFromIndexList.size() - 1)) {
                     preEditable.append(nextStringValue.substring(to));
                 }
@@ -682,8 +671,8 @@ public class ZiceRichTextEditor extends ScrollView {
             if (nextRangeFromIndexList.size() == 0) {
                 preEditable.append(nextStringValue);
             }
-            allLayout.setLayoutTransition(null);
-            allLayout.removeView(currentEdit);
+            mAllLayout.setLayoutTransition(null);
+            mAllLayout.removeView(currentEdit);
         }
     }
 

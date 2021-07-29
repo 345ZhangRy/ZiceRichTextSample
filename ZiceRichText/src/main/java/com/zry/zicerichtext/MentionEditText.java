@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.zry.zicerichtext.mentions.library.edit;
+package com.zry.zicerichtext;
 
 import android.content.Context;
 import android.text.Editable;
@@ -24,14 +24,13 @@ import android.util.AttributeSet;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
-import com.zry.zicerichtext.mentions.library.edit.listener.InsertData;
-import com.zry.zicerichtext.mentions.library.edit.listener.MentionInputConnection;
-import com.zry.zicerichtext.mentions.library.edit.listener.MentionTextWatcher;
-import com.zry.zicerichtext.mentions.library.edit.util.FormatRangeManager;
-import com.zry.zicerichtext.mentions.library.edit.util.RangeManager;
-import com.zry.zicerichtext.mentions.library.model.FormatRange;
-import com.zry.zicerichtext.mentions.library.model.Range;
-
+import com.zry.zicerichtext.mention.util.InsertData;
+import com.zry.zicerichtext.mention.util.MentionInputConnection;
+import com.zry.zicerichtext.mention.util.MentionTextWatcher;
+import com.zry.zicerichtext.range.FormatRangeManager;
+import com.zry.zicerichtext.range.RangeManager;
+import com.zry.zicerichtext.range.FormatRange;
+import com.zry.zicerichtext.range.Range;
 
 /**
  * MentionEditText adds some useful features for mention string(@xxxx), such as highlight,
@@ -43,8 +42,7 @@ public class MentionEditText extends android.support.v7.widget.AppCompatEditText
     private Runnable mAction;
 
     private boolean mIsSelected;
-
-    Context mContext;
+    protected FormatRangeManager mRangeManager;
 
     public MentionEditText(Context context) {
         super(context);
@@ -59,6 +57,12 @@ public class MentionEditText extends android.support.v7.widget.AppCompatEditText
     public MentionEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
+    }
+
+    private void init() {
+        mRangeManager = new FormatRangeManager();
+        //disable suggestion
+        addTextChangedListener(new MentionTextWatcher(this));
     }
 
     @Override
@@ -92,6 +96,7 @@ public class MentionEditText extends android.support.v7.widget.AppCompatEditText
                 mIsSelected = false;
             }
 
+            //遇到range，中间不能给获取焦点
             Range nearbyRange = mRangeManager.getRangeOfNearbyMentionString(selStart, selEnd);
             //if there is no mention string nearby the cursor, just skip
             if (null != nearbyRange) {
@@ -110,16 +115,15 @@ public class MentionEditText extends android.support.v7.widget.AppCompatEditText
         }
     }
 
-    public void insert(InsertData insertData, CharSequence userId, Context mContext) {
-
-        this.mContext = mContext;
-        if (null != insertData) {
+    public void insert(InsertData insertData) {
+        if (insertData != null) {
             CharSequence charSequence = insertData.charSequence();
 
             Editable editable = getText();
             int start = getSelectionStart();
             int end = start + charSequence.length();
             editable.insert(start, charSequence);
+
             FormatRange.FormatData format = insertData.formatData();
             FormatRange range = new FormatRange(start, end);
             range.setConvert(format);
@@ -131,46 +135,6 @@ public class MentionEditText extends android.support.v7.widget.AppCompatEditText
         }
     }
 
-//    public void insert(CharSequence charSequence) {
-//        insert(new Default(charSequence));
-//    }
-
-//    class Default implements InsertData {
-//
-//        private final CharSequence charSequence;
-//
-//        public Default(CharSequence charSequence) {
-//            this.charSequence = charSequence;
-//        }
-//
-//        @Override
-//        public CharSequence charSequence() {
-//            return charSequence;
-//        }
-//
-//        @Override
-//        public FormatRange.FormatData formatData() {
-//            return new DEFAULT();
-//        }
-//
-//        @Override
-//        public int color() {
-//            return Color.GRAY;
-//        }
-//
-//        class DEFAULT implements FormatRange.FormatData {
-//            @Override
-//            public CharSequence formatCharSequence() {
-//                return charSequence;
-//            }
-//
-//            @Override
-//            public CharSequence getUserId() {
-//                return null;
-//            }
-//        }
-//    }
-
     public CharSequence getFormatCharSequence() {
         String text = getText().toString();
         return mRangeManager.getFormatCharSequence(text);
@@ -179,14 +143,6 @@ public class MentionEditText extends android.support.v7.widget.AppCompatEditText
     public void clear() {
         mRangeManager.clear();
         setText("");
-    }
-
-    protected FormatRangeManager mRangeManager;
-
-    private void init() {
-        mRangeManager = new FormatRangeManager();
-        //disable suggestion
-        addTextChangedListener(new MentionTextWatcher(this));
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////
