@@ -30,7 +30,7 @@ public class Link implements Serializable, InsertData {
 
     @Override
     public CharSequence charSequence() {
-        return "#" + mUrl;
+        return "#" + mText;
     }
 
     @Override

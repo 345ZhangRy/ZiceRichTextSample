@@ -17,6 +17,7 @@ import android.widget.ScrollView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.zry.zicerichtext.mention.model.Link;
 import com.zry.zicerichtext.mention.model.User;
 import com.zry.zicerichtext.range.FormatRange;
 import com.zry.zicerichtext.range.Range;
@@ -44,7 +45,8 @@ public class ZiceRichTextEditor extends ScrollView {
     private ZiceImageView mZiceImageView;
     StringBuilder mUpdateText = new StringBuilder();  //Text to be uploaded
     private ArrayList<String> mImagePaths;   //Image address collection
-    private int mAtColor = 0xff42ca6e;
+    private int mMentionColor = 0xff42ca6e;
+    private int mLinkColor = 0xff14326e;
 
     /**
      * Custom attribute
@@ -177,8 +179,13 @@ public class ZiceRichTextEditor extends ScrollView {
      * @param user user
      */
     public void insertMention(User user) {
-        this.mAtColor = user.color();
+        this.mMentionColor = user.color();
         mLastFocusEdit.insert(user);
+    }
+
+    public void insertLink(Link link) {
+        this.mLinkColor = link.color();
+        mLastFocusEdit.insert(link);
     }
 
     /**
@@ -283,7 +290,7 @@ public class ZiceRichTextEditor extends ScrollView {
                     FormatRange range = (FormatRange) formatRanges.get(i);
                     CharSequence rangeCharSequence = range.getRangeCharSequence();
                     User user = new User(range.getConvert().formatParam(),
-                            rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
+                            rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
                     insertMention(user);
                 } else {    //焦点前面最后一个range和焦点之间的文字append
                     editable.append(editStr.substring(editable.length(), cursorIndex));
@@ -311,7 +318,7 @@ public class ZiceRichTextEditor extends ScrollView {
                         editableAfter.append(editStr.substring(beginIndex, from));//append焦点后面的第一个range 的前面的文字
                         FormatRange range = (FormatRange) formatRanges.get(i);
                         CharSequence rangeCharSequence = range.getRangeCharSequence();
-                        User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
+                        User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
                         editTextAfter.insert(user);
                         if (i == rangeFromIndexList.size() - 1) {   //如果是最后一个range了，把后面的文字都append
                             editableAfter.append(editStr.substring(to));
@@ -394,28 +401,6 @@ public class ZiceRichTextEditor extends ScrollView {
     }
 
     /**
-     * Externally provided interface, generate edit data upload
-     */
-    public List<EditData> buildEditData() {
-        List<EditData> dataList = new ArrayList<>();
-        int num = mAllLayout.getChildCount();
-        for (int index = 0; index < num; index++) {
-            View itemView = mAllLayout.getChildAt(index);
-            EditData itemData = new EditData();
-            if (itemView instanceof MentionEditText) {
-                MentionEditText item = (MentionEditText) itemView;
-                itemData.inputStr = item.getText().toString();
-            } else if (itemView instanceof ZiceImageView) {
-                ZiceImageView item = (ZiceImageView) itemView;
-                itemData.imagePath = item.getAbsolutePath();
-            }
-            dataList.add(itemData);
-        }
-
-        return dataList;
-    }
-
-    /**
      * When the view is deleted, if the upper and lower are EditText, the merge processing
      */
     public void mergeEditText(int curIndex) {
@@ -456,9 +441,16 @@ public class ZiceRichTextEditor extends ScrollView {
                 curEditable.append(nextString.substring(curEditable.length(), from));
                 FormatRange range = (FormatRange) nextFormatRanges.get(i);
                 CharSequence rangeCharSequence = range.getRangeCharSequence();
-                User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
-                deleteEdit.insert(user);
-                curEditable.append(user.charSequence());
+                FormatRange.FormatData formatData = range.getConvert();
+                if (formatData instanceof User.UserConvert) {
+                    User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
+                    deleteEdit.insert(user);
+                    curEditable.append(user.charSequence());
+                } else if (formatData instanceof Link.LinkConvert) {
+                    Link link = new Link(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mLinkColor);
+                    deleteEdit.insert(link);
+                    curEditable.append(link.charSequence());
+                }
                 if (i == (nextRangeFromIndexList.size() - 1)) {
                     deleteEditable.append(nextString.substring(to));
                 }
@@ -501,7 +493,7 @@ public class ZiceRichTextEditor extends ScrollView {
                 curEditable.append(nextString.substring(curEditable.length(), from));
                 FormatRange range = (FormatRange) nextFormatRanges.get(i);
                 CharSequence rangeCharSequence = range.getRangeCharSequence();
-                User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mAtColor);
+                User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
                 preEdit.insert(user);
                 curEditable.append(user.charSequence());
                 if (i == (nextRangeFromIndexList.size() - 1)) {
