@@ -2,7 +2,6 @@
 <resources>
     
     <declare-styleable name="ZiceRichTextEditor" >
-        <attr name="rt_editor_image_height" format="integer" />
         <attr name="rt_editor_text_init_hint" format="string" />
         <attr name="rt_editor_text_size" format="dimension" />
         <attr name="rt_editor_text_color" format="color" />

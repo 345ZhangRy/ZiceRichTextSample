@@ -23,8 +23,7 @@ public class ZiceUtils {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(filePath, options);
-        int sampleSize = options.outWidth > width ? options.outWidth / width
-                + 1 : 1;
+        int sampleSize = options.outWidth > width ? options.outWidth / width + 1 : 1;
         options.inJustDecodeBounds = false;
         options.inSampleSize = sampleSize;
         return BitmapFactory.decodeFile(filePath, options);

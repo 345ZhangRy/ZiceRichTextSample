@@ -1,19 +1,3 @@
-/*
- * Copyright 2016 Andy
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.zry.zicerichtext;
 
 import android.content.Context;
@@ -32,12 +16,6 @@ import com.zry.zicerichtext.range.RangeManager;
 import com.zry.zicerichtext.range.FormatRange;
 import com.zry.zicerichtext.range.Range;
 
-/**
- * MentionEditText adds some useful features for mention string(@xxxx), such as highlight,
- * intelligent deletion, intelligent selection and '@' input detection, etc.
- *
- * @author Andy
- */
 public class MentionEditText extends android.support.v7.widget.AppCompatEditText {
     private Runnable mAction;
 
@@ -144,8 +122,6 @@ public class MentionEditText extends android.support.v7.widget.AppCompatEditText
         mRangeManager.clear();
         setText("");
     }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////
 
     public RangeManager getRangeManager() {
         return mRangeManager;

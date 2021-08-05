@@ -13,7 +13,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        app:rt_editor_image_height="500"
         app:rt_editor_text_color="@color/text_color"
         app:rt_editor_text_init_hint="帖子正文描述(必填)"
         app:rt_editor_text_line_space="6dp"
