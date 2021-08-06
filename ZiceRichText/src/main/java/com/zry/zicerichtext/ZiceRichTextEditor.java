@@ -42,7 +42,6 @@ public class ZiceRichTextEditor extends ScrollView {
     private int mViewTagIndex; // The newer view will have a tag, which is unique for each view.
     private LinearLayout mAllLayout; // This is the container for all child views, the only one inside the scrollView.
     private MentionEditText mLastFocusEdit; // Recently focused EditText
-    private ZiceImageView mZiceImageView;
     StringBuilder mUpdateText = new StringBuilder();  //Text to be uploaded
     private ArrayList<String> mImagePaths;   //Image address collection
     private int mMentionColor = 0xff42ca6e;
@@ -183,6 +182,11 @@ public class ZiceRichTextEditor extends ScrollView {
         mLastFocusEdit.insert(user);
     }
 
+    /**
+     * Insert a link
+     *
+     * @param link link
+     */
     public void insertLink(Link link) {
         this.mLinkColor = link.color();
         mLastFocusEdit.insert(link);
@@ -493,9 +497,16 @@ public class ZiceRichTextEditor extends ScrollView {
                 curEditable.append(nextString.substring(curEditable.length(), from));
                 FormatRange range = (FormatRange) nextFormatRanges.get(i);
                 CharSequence rangeCharSequence = range.getRangeCharSequence();
-                User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
-                preEdit.insert(user);
-                curEditable.append(user.charSequence());
+                FormatRange.FormatData formatData = range.getConvert();
+                if (formatData instanceof User.UserConvert) {
+                    User user = new User(formatData.formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
+                    preEdit.insert(user);
+                    curEditable.append(user.charSequence());
+                } else if (formatData instanceof Link.LinkConvert) {
+                    Link link = new Link(formatData.formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mLinkColor);
+                    preEdit.insert(link);
+                    curEditable.append(link.charSequence());
+                }
                 if (i == (nextRangeFromIndexList.size() - 1)) {
                     preEditable.append(nextString.substring(to));
                 }
@@ -531,9 +542,15 @@ public class ZiceRichTextEditor extends ScrollView {
                 }
             }
             if (currentView instanceof ZiceImageView) {     //picture
-                mZiceImageView = (ZiceImageView) currentView;
+                ZiceImageView ziceImageView = (ZiceImageView) currentView;
                 mUpdateText.append("<img data-src=\"")
-                        .append(mZiceImageView.getAbsolutePath())
+                        .append(ziceImageView.getAbsolutePath())
+                        .append("/>");
+            }
+            if (currentView instanceof ZiceCustomView) {    //custom view
+                ZiceCustomView customView = (ZiceCustomView) currentView;
+                mUpdateText.append("<custom viewId=\"")
+                        .append(customView.getViewId())
                         .append("/>");
             }
         }

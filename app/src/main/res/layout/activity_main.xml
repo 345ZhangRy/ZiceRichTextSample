@@ -33,6 +33,13 @@
             android:layout_weight="1"
             android:text="相册" />
 
+        <Button
+            android:id="@+id/btn_custom"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="自定义view" />
+
     </LinearLayout>
 
     <TextView

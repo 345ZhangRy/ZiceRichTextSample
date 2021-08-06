@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ZiceRichTextEditor mEditor;
 
     private TextView mShowTv;
-    private Button mMentionBtn, mLinkBtn, mAlbumBtn, mContentBtn;
+    private Button mMentionBtn, mLinkBtn, mAlbumBtn, mCustomBtn, mContentBtn;
 
     private String showText;
 
@@ -59,10 +59,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mMentionBtn = findViewById(R.id.btn_mention);
         mLinkBtn = findViewById(R.id.btn_link);
         mAlbumBtn = findViewById(R.id.btn_album);
+        mCustomBtn = findViewById(R.id.btn_custom);
         mContentBtn = findViewById(R.id.btn_content);
         mMentionBtn.setOnClickListener(this);
         mLinkBtn.setOnClickListener(this);
         mAlbumBtn.setOnClickListener(this);
+        mCustomBtn.setOnClickListener(this);
         mContentBtn.setOnClickListener(this);
     }
 
@@ -96,6 +98,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                                Toast.makeText(this, "您没有授权该权限，请在设置中打开授权", Toast.LENGTH_SHORT).show();
 //                            }
 //                        });
+                break;
+            case R.id.btn_custom:
+                CustomView customView = new CustomView(this);
+                customView.setViewId(1024);
+                mEditor.insertCustomView(customView);
                 break;
             case R.id.btn_content:
                 mShowTv.setText("");
