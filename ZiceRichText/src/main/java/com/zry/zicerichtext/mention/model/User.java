@@ -1,6 +1,6 @@
 package com.zry.zicerichtext.mention.model;
 
-import com.zry.zicerichtext.mention.util.InsertData;
+import com.zry.zicerichtext.mention.InsertData;
 import com.zry.zicerichtext.range.FormatRange;
 
 import java.io.Serializable;

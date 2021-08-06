@@ -1,10 +1,10 @@
 package com.zry.zicerichtext;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.AttributeSet;
 
-public class ZiceImageView extends android.support.v7.widget.AppCompatImageView {
+public class ZiceImageView extends androidx.appcompat.widget.AppCompatImageView {
 
     private String mAbsolutePath;
 

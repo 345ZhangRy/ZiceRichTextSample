@@ -8,15 +8,15 @@ import android.util.AttributeSet;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 
-import com.zry.zicerichtext.mention.util.InsertData;
-import com.zry.zicerichtext.mention.util.MentionInputConnection;
-import com.zry.zicerichtext.mention.util.MentionTextWatcher;
+import com.zry.zicerichtext.mention.InsertData;
+import com.zry.zicerichtext.mention.MentionInputConnection;
+import com.zry.zicerichtext.mention.MentionTextWatcher;
 import com.zry.zicerichtext.range.FormatRangeManager;
 import com.zry.zicerichtext.range.RangeManager;
 import com.zry.zicerichtext.range.FormatRange;
 import com.zry.zicerichtext.range.Range;
 
-public class MentionEditText extends android.support.v7.widget.AppCompatEditText {
+public class MentionEditText extends androidx.appcompat.widget.AppCompatEditText {
     private Runnable mAction;
 
     private boolean mIsSelected;

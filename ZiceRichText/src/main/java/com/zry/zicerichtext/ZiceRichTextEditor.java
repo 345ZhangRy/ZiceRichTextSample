@@ -545,13 +545,13 @@ public class ZiceRichTextEditor extends ScrollView {
                 ZiceImageView ziceImageView = (ZiceImageView) currentView;
                 mUpdateText.append("<img data-src=\"")
                         .append(ziceImageView.getAbsolutePath())
-                        .append("/>");
+                        .append("\"/>");
             }
             if (currentView instanceof ZiceCustomView) {    //custom view
                 ZiceCustomView customView = (ZiceCustomView) currentView;
                 mUpdateText.append("<custom viewId=\"")
                         .append(customView.getViewId())
-                        .append("/>");
+                        .append("\"/>");
             }
         }
         String resultText = mUpdateText.toString();

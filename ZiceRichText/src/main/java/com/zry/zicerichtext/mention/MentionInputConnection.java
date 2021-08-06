@@ -1,4 +1,4 @@
-package com.zry.zicerichtext.mention.util;
+package com.zry.zicerichtext.mention;
 
 import android.view.KeyEvent;
 import android.view.inputmethod.InputConnection;

@@ -1,4 +1,4 @@
-package com.zry.zicerichtext.mention.util;
+package com.zry.zicerichtext.mention;
 
 import android.text.Editable;
 import android.text.TextWatcher;
