@@ -1,5 +1,7 @@
 package com.zry.zicerichtextsample;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
@@ -7,7 +9,17 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -25,15 +37,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ZiceRichTextEditor mEditor;
 
-    private TextView mShowTv;
-    private Button mMentionBtn, mLinkBtn, mAlbumBtn, mCustomBtn, mContentBtn;
+    private Button mContentBtn;
 
     private String showText;
 
     public static final int REQUEST_ALBUM = 1;
 
-    private int mMentionColor = 0xff42ca6e;   //@颜色
-    private int mLinkColor = 0xff14326e;   //link颜色
+    private ActivityResultLauncher<Intent> startActivity;
 
     Handler handler = new Handler() {
         @Override
@@ -55,35 +65,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         mEditor = findViewById(R.id.et_new_content);
-        mShowTv = findViewById(R.id.tv_show);
-        mMentionBtn = findViewById(R.id.btn_mention);
-        mLinkBtn = findViewById(R.id.btn_link);
-        mAlbumBtn = findViewById(R.id.btn_album);
-        mCustomBtn = findViewById(R.id.btn_custom);
         mContentBtn = findViewById(R.id.btn_content);
-        mMentionBtn.setOnClickListener(this);
-        mLinkBtn.setOnClickListener(this);
-        mAlbumBtn.setOnClickListener(this);
-        mCustomBtn.setOnClickListener(this);
         mContentBtn.setOnClickListener(this);
+
+        startActivity = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(), result -> {
+                    Intent resultData = result.getData();
+                    if (resultData != null) {
+                        User user = (User) resultData.getSerializableExtra("user");
+                        mEditor.insertMention(user);
+                    }
+                });
     }
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_mention:
-                User user = new User("10", "小燕子", mMentionColor);
-                mEditor.insertMention(user);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_mention:
+                Intent intent = new Intent(MainActivity.this, UserListActivity.class);
+                startActivity.launch(intent);
                 break;
-            case R.id.btn_link:
-                Link link = new Link("https://www.baidu.com", "百度", mLinkColor);
+            case R.id.action_link:
+                Link link = new Link("https://www.baidu.com", "震惊！...");
                 mEditor.insertLink(link);
                 break;
-            case R.id.btn_album:
-//                new RxPermissions(this).request(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                        Manifest.permission.READ_EXTERNAL_STORAGE)
-//                        .subscribe(granted -> {
-//                            if (granted) {
+            case R.id.action_album:
                 Matisse.from(MainActivity.this)
                         .choose(MimeType.ofAll())
                         .countable(true)
@@ -93,21 +105,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         .thumbnailScale(0.85f)
                         .imageEngine(new MyGlideEngine())
                         .forResult(REQUEST_ALBUM);
-//                            } else {
-//                                // At least one permission is denied
-//                                Toast.makeText(this, "您没有授权该权限，请在设置中打开授权", Toast.LENGTH_SHORT).show();
-//                            }
-//                        });
                 break;
-            case R.id.btn_custom:
+            case R.id.action_custom:
                 CustomView customView = new CustomView(this);
                 customView.setViewId(1024);
                 mEditor.insertCustomView(customView);
                 break;
+        }
+        return true;
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
             case R.id.btn_content:
-                mShowTv.setText("");
                 showText = mEditor.getAllLayoutText();
-                mShowTv.setText(showText);
+                new AlertDialog.Builder(this).setMessage(showText).show();
                 break;
         }
     }

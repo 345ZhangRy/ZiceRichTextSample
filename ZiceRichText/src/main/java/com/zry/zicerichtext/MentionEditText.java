@@ -11,6 +11,8 @@ import android.view.inputmethod.InputConnection;
 import com.zry.zicerichtext.mention.InsertData;
 import com.zry.zicerichtext.mention.MentionInputConnection;
 import com.zry.zicerichtext.mention.MentionTextWatcher;
+import com.zry.zicerichtext.mention.model.Link;
+import com.zry.zicerichtext.mention.model.User;
 import com.zry.zicerichtext.range.FormatRangeManager;
 import com.zry.zicerichtext.range.RangeManager;
 import com.zry.zicerichtext.range.FormatRange;

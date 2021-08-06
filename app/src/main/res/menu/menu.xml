@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingDefaultResource">
+
+    <item
+        android:id="@+id/action_mention"
+        android:title="mention"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_link"
+        android:title="link"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_album"
+        android:title="album"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_custom"
+        android:title="custom"
+        app:showAsAction="never" />
+
+</menu>

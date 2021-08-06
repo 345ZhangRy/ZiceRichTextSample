@@ -14,10 +14,9 @@ public class Link implements Serializable, InsertData {
     private CharSequence mText;
     private int mColor;
 
-    public Link(CharSequence url, CharSequence text, int color) {
+    public Link(CharSequence url, CharSequence text) {
         mUrl = url;
         mText = text;
-        mColor = color;
     }
 
     public CharSequence getUrl() {
@@ -36,6 +35,10 @@ public class Link implements Serializable, InsertData {
     @Override
     public FormatRange.FormatData formatData() {
         return new LinkConvert(this);
+    }
+
+    public void setColor(int color) {
+        mColor = color;
     }
 
     @Override

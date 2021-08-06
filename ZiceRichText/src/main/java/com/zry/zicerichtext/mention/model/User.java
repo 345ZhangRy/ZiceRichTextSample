@@ -9,12 +9,11 @@ public class User implements Serializable, InsertData {
 
     private final CharSequence mUserId;
     private final CharSequence mUserName;
-    private final int mColor;
+    private int mColor;
 
-    public User(CharSequence userId, CharSequence userName, int color) {
+    public User(CharSequence userId, CharSequence userName) {
         this.mUserId = userId;
         this.mUserName = userName;
-        this.mColor = color;
     }
 
     public CharSequence getUserId() {
@@ -46,6 +45,10 @@ public class User implements Serializable, InsertData {
     @Override
     public FormatRange.FormatData formatData() {
         return new UserConvert(this);
+    }
+
+    public void setColor(int color) {
+        mColor = color;
     }
 
     @Override

@@ -44,8 +44,6 @@ public class ZiceRichTextEditor extends ScrollView {
     private MentionEditText mLastFocusEdit; // Recently focused EditText
     StringBuilder mUpdateText = new StringBuilder();  //Text to be uploaded
     private ArrayList<String> mImagePaths;   //Image address collection
-    private int mMentionColor = 0xff42ca6e;
-    private int mLinkColor = 0xff14326e;
 
     /**
      * Custom attribute
@@ -54,6 +52,8 @@ public class ZiceRichTextEditor extends ScrollView {
     private String mZrtTextInitHint;
     private int mZrtTextSize;
     private int mZrtTextColor;
+    private int mZrtMentionColor;
+    private int mZrtLinkColor;
     private int mZrtTextLineSpace;
 
     public ZiceRichTextEditor(Context context) {
@@ -74,6 +74,8 @@ public class ZiceRichTextEditor extends ScrollView {
         mZrtTextSize = ta.getDimensionPixelSize(R.styleable.ZiceRichTextEditor_rt_editor_text_size, 16);
         mZrtTextLineSpace = ta.getDimensionPixelSize(R.styleable.ZiceRichTextEditor_rt_editor_text_line_space, 8);
         mZrtTextColor = ta.getColor(R.styleable.ZiceRichTextEditor_rt_editor_text_color, Color.parseColor("#757575"));
+        mZrtMentionColor = ta.getColor(R.styleable.ZiceRichTextEditor_rt_editor_mention_color, Color.parseColor("#ff42ca6e"));
+        mZrtLinkColor = ta.getColor(R.styleable.ZiceRichTextEditor_rt_editor_link_color, Color.parseColor("#ff14326e"));
         mZrtTextInitHint = ta.getString(R.styleable.ZiceRichTextEditor_rt_editor_text_init_hint);
 
         ta.recycle();
@@ -178,7 +180,7 @@ public class ZiceRichTextEditor extends ScrollView {
      * @param user user
      */
     public void insertMention(User user) {
-        this.mMentionColor = user.color();
+        user.setColor(mZrtMentionColor);
         mLastFocusEdit.insert(user);
     }
 
@@ -188,7 +190,7 @@ public class ZiceRichTextEditor extends ScrollView {
      * @param link link
      */
     public void insertLink(Link link) {
-        this.mLinkColor = link.color();
+        link.setColor(mZrtLinkColor);
         mLastFocusEdit.insert(link);
     }
 
@@ -294,7 +296,7 @@ public class ZiceRichTextEditor extends ScrollView {
                     FormatRange range = (FormatRange) formatRanges.get(i);
                     CharSequence rangeCharSequence = range.getRangeCharSequence();
                     User user = new User(range.getConvert().formatParam(),
-                            rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
+                            rangeCharSequence.subSequence(1, rangeCharSequence.length()));
                     insertMention(user);
                 } else {    //焦点前面最后一个range和焦点之间的文字append
                     editable.append(editStr.substring(editable.length(), cursorIndex));
@@ -322,7 +324,7 @@ public class ZiceRichTextEditor extends ScrollView {
                         editableAfter.append(editStr.substring(beginIndex, from));//append焦点后面的第一个range 的前面的文字
                         FormatRange range = (FormatRange) formatRanges.get(i);
                         CharSequence rangeCharSequence = range.getRangeCharSequence();
-                        User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
+                        User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()));
                         editTextAfter.insert(user);
                         if (i == rangeFromIndexList.size() - 1) {   //如果是最后一个range了，把后面的文字都append
                             editableAfter.append(editStr.substring(to));
@@ -447,11 +449,11 @@ public class ZiceRichTextEditor extends ScrollView {
                 CharSequence rangeCharSequence = range.getRangeCharSequence();
                 FormatRange.FormatData formatData = range.getConvert();
                 if (formatData instanceof User.UserConvert) {
-                    User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
+                    User user = new User(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()));
                     deleteEdit.insert(user);
                     curEditable.append(user.charSequence());
                 } else if (formatData instanceof Link.LinkConvert) {
-                    Link link = new Link(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mLinkColor);
+                    Link link = new Link(range.getConvert().formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()));
                     deleteEdit.insert(link);
                     curEditable.append(link.charSequence());
                 }
@@ -499,11 +501,11 @@ public class ZiceRichTextEditor extends ScrollView {
                 CharSequence rangeCharSequence = range.getRangeCharSequence();
                 FormatRange.FormatData formatData = range.getConvert();
                 if (formatData instanceof User.UserConvert) {
-                    User user = new User(formatData.formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mMentionColor);
+                    User user = new User(formatData.formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()));
                     preEdit.insert(user);
                     curEditable.append(user.charSequence());
                 } else if (formatData instanceof Link.LinkConvert) {
-                    Link link = new Link(formatData.formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()), mLinkColor);
+                    Link link = new Link(formatData.formatParam(), rangeCharSequence.subSequence(1, rangeCharSequence.length()));
                     preEdit.insert(link);
                     curEditable.append(link.charSequence());
                 }

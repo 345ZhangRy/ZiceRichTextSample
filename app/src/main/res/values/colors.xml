@@ -4,5 +4,7 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
+    <color name="showBg">#D0A973</color>
+
     <color name="text_color" tools:ignore="MissingDefaultResource">#494949</color>
 </resources>
