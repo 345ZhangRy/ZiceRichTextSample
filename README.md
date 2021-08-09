@@ -23,7 +23,7 @@ ZiceRichTextEditor.insertLink(Link)
 ### 插入一张普通图片 
 ZiceRichTextEditor.insertImage(imagePath, imageWidth)
 ### 插入一个自定义view 
-ZiceRichTextEditor.insertCustomView(View)
+ZiceRichTextEditor.insertCustomView(customView extends ZiceCustomView)
 ### 查看当前编辑页所有内容标签
 ZiceRichTextEditor.getAllLayoutText()
 ## 感谢
